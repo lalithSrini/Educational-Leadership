@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/Training-and-Develp-NPTEL/static/css/main.89ab0583.css",
+    "main.js": "/Training-and-Develp-NPTEL/static/js/main.37593e27.js",
+    "static/js/453.2236d9b7.chunk.js": "/Training-and-Develp-NPTEL/static/js/453.2236d9b7.chunk.js",
+    "index.html": "/Training-and-Develp-NPTEL/index.html",
+    "main.89ab0583.css.map": "/Training-and-Develp-NPTEL/static/css/main.89ab0583.css.map",
+    "main.37593e27.js.map": "/Training-and-Develp-NPTEL/static/js/main.37593e27.js.map",
+    "453.2236d9b7.chunk.js.map": "/Training-and-Develp-NPTEL/static/js/453.2236d9b7.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.89ab0583.css",
+    "static/js/main.37593e27.js"
+  ]
+}
