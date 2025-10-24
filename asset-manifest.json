@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/lalithSrini/Educational-Leadership/static/css/main.89ab0583.css",
-    "main.js": "/lalithSrini/Educational-Leadership/static/js/main.be2df99d.js",
+    "main.js": "/lalithSrini/Educational-Leadership/static/js/main.407acb73.js",
     "static/js/453.50753375.chunk.js": "/lalithSrini/Educational-Leadership/static/js/453.50753375.chunk.js",
     "index.html": "/lalithSrini/Educational-Leadership/index.html",
     "main.89ab0583.css.map": "/lalithSrini/Educational-Leadership/static/css/main.89ab0583.css.map",
-    "main.be2df99d.js.map": "/lalithSrini/Educational-Leadership/static/js/main.be2df99d.js.map",
+    "main.407acb73.js.map": "/lalithSrini/Educational-Leadership/static/js/main.407acb73.js.map",
     "453.50753375.chunk.js.map": "/lalithSrini/Educational-Leadership/static/js/453.50753375.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.89ab0583.css",
-    "static/js/main.be2df99d.js"
+    "static/js/main.407acb73.js"
   ]
 }
