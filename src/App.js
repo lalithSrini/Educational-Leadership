@@ -1,9 +1,10 @@
 // A complete React Quiz App (mobile friendly) without TailwindCSS
 // Uses basic CSS and React Hooks
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import "./App.css";
-
+import { db } from "./firebase";
+import { ref, onValue, runTransaction } from "firebase/database";
 const rawQuestions = [
   {
     "question": "A leader can be anyone who serves as an effective ___.",
@@ -521,7 +522,6 @@ const rawQuestions = [
 
   
 ];
-
 function shuffle(array) {
   let currentIndex = array.length, randomIndex;
   while (currentIndex !== 0) {
@@ -548,6 +548,10 @@ function App() {
   const [quizMode, setQuizMode] = useState("welcome");
   const [questionsCount, setQuestionsCount] = useState(20);
   const [showHint, setShowHint] = useState(false);
+  const [visits, setVisits] = useState(null);
+  const [isFirebaseLoaded, setIsFirebaseLoaded] = useState(true);
+  const hasIncremented = useRef(false);
+  const incrementCompleted = useRef(false);
 
   // -------------------
   // Timer State
@@ -563,6 +567,113 @@ function App() {
     if (savedScores) {
       setPastScores(JSON.parse(savedScores));
     }
+  }, []);
+
+  // Page visits: subscribe and increment once on mount
+  useEffect(() => {
+    const visitsRef = ref(db, "EducationalVisits/total");
+    let unsubscribe;
+    let timeoutId;
+    
+    const initializeFirebase = async () => {
+      try {
+        console.log("Starting Firebase initialization...");
+        
+        // Set a timeout fallback in case Firebase is slow
+        timeoutId = setTimeout(() => {
+          console.warn("Firebase taking too long, showing app anyway");
+          setIsFirebaseLoaded(true);
+        }, 8000); // 8 second timeout
+        
+        // Start listening first
+        unsubscribe = onValue(visitsRef, (snapshot) => {
+          console.log("Firebase data received:", snapshot.val());
+          const val = snapshot.val();
+          
+          // Only set visits and mark as loaded if increment is completed OR if we haven't incremented yet
+          if (incrementCompleted.current || !hasIncremented.current) {
+            setVisits(val == null ? 0 : val);
+            
+            // Clear timeout and mark as loaded
+            if (timeoutId) {
+              clearTimeout(timeoutId);
+              timeoutId = null;
+            }
+            setIsFirebaseLoaded(true);
+          } else {
+            console.log("Ignoring initial value, waiting for increment to complete...");
+          }
+        }, (error) => {
+          console.error("Firebase onValue error:", error);
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+          }
+          setIsFirebaseLoaded(true);
+        });
+        
+        // Check if we should increment based on local session (10 minutes)
+        const shouldIncrement = () => {
+          const lastVisit = localStorage.getItem('lastVisitTime');
+          const now = Date.now();
+          const tenMinutes = 10 * 60 * 1000; // 10 minutes in milliseconds
+          
+          if (!lastVisit) {
+            console.log("First visit, will increment");
+            return true;
+          }
+          
+          const timeDiff = now - parseInt(lastVisit);
+          if (timeDiff > tenMinutes) {
+            console.log(`Last visit was ${Math.round(timeDiff / 1000 / 60)} minutes ago, will increment`);
+            return true;
+          }
+          
+          console.log(`Last visit was ${Math.round(timeDiff / 1000)} seconds ago, skipping increment`);
+          return false;
+        };
+        
+        // Only increment once, even in StrictMode, and only if session allows
+        if (!hasIncremented.current && shouldIncrement()) {
+          hasIncremented.current = true;
+          console.log("Incrementing visit counter...");
+          
+          await runTransaction(visitsRef, (current) => {
+            const newValue = (current || 0) + 1;
+            console.log("Transaction: current =", current, "new =", newValue);
+            return newValue;
+          });
+          
+          // Store current timestamp for session tracking
+          localStorage.setItem('lastVisitTime', Date.now().toString());
+          incrementCompleted.current = true;
+          console.log("Transaction completed, increment finished, session updated");
+        } else {
+          incrementCompleted.current = true; // Already incremented or within session time
+          if (!shouldIncrement()) {
+            console.log("Skipping increment due to recent visit (within 10 minutes)");
+          }
+        }
+        
+      } catch (error) {
+        console.error("Firebase initialization error:", error);
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+        setIsFirebaseLoaded(true);
+      }
+    };
+    
+    initializeFirebase();
+    
+    return () => {
+      if (unsubscribe) {
+        unsubscribe();
+      }
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, []);
 
   // Timer effect
@@ -592,6 +703,8 @@ function App() {
     setEndTime(null);
     setQuizMode("quiz");
     setTimeLeft(600); // Start with 10 minutes
+    const secondsPerQuestion = 30; // 30 seconds per question (adjust this value)
+  setTimeLeft(count * secondsPerQuestion);
   };
 
   const handleOptionSelect = (option) => {
@@ -652,8 +765,10 @@ function App() {
     if (quizMode === "welcome") {
       return (
         <div className="welcome-screen">
-          <h2>Welcome to  Educational Leadership Quiz</h2>
-          <p>Practice  Educational Leadership assignment Questions</p>
+          <h2>Welcome to 	
+Educational Leadership Quiz</h2>
+          <p>Practice assessment questions on 	
+Educational Leadership Quiz</p>
           
           <div className="quiz-options">
             <div className="question-count">
@@ -781,7 +896,7 @@ function App() {
       let feedback;
       
       if (percentage >= 90) {
-        feedback = "Outstanding! You're an expert in Conservation Economics!";
+        feedback = "Outstanding! You're an expert in Educational Leadership!";
       } else if (percentage >= 70) {
         feedback = "Great job! You have a solid understanding of the subject.";
       } else if (percentage >= 50) {
@@ -866,10 +981,29 @@ function App() {
     }
   };
 
+  // Show loading screen until Firebase data is loaded
+  if (!isFirebaseLoaded) {
+    return (
+      <div className="quiz-app-container">
+        <div className="loading-screen">
+          <h1>Educational Leadership Quiz</h1>
+          <div className="loading-spinner">
+            <div className="spinner"></div>
+            <p>Connecting ....</p>
+            {/* <small>Getting visit count from Firebase</small> */}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="quiz-app-container">
       <header>
         <h1> Educational Leadership Quizz</h1>
+        
+        <p>Note: if Answer is wrong <b>Correct Answer will be shown Bellow</b></p>
+        <p><b>Hint </b> : Click on "Need a hint" button if you don't Know the Answer</p>
       </header>
       <main>
         {renderQuizSection()}
@@ -879,6 +1013,9 @@ function App() {
         <div className="disclaimer">
         {/* <p><em>Note: This quiz was generated using ChatGPT for educational and revision purposes. We are not responsible for any incorrect answers. Please verify with official sources when in doubt.</em></p> */}
       </div>
+
+       <div className="visit-counter">Total visits: {visits === null ? "..." : visits}</div>
+      
       </footer>
       
     </div>

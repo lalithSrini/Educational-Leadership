@@ -1,6 +1,6 @@
 {
-  "homepage": "https://lalithsrini.github.io/Training-and-Develp-NPTEL/",
-  "name": "conservation-quiz",
+  "homepage": "https://github.com/lalithSrini/Educational-Leadership",
+  "name": "Educational-Leadership",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -8,6 +8,7 @@
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.3.0",
     "@testing-library/user-event": "^13.5.0",
+    "firebase": "^12.4.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-router-dom": "^7.5.2",
